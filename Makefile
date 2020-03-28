@@ -49,8 +49,11 @@ $(OBJDIR):
 
 build: $(OBJDIR) $(OBJDIR)/bootsector.bin $(OBJDIR)/bootsector2x.bin $(OBJDIR)/stage2.bin
 
-# Installation is a bit tricky, and should be handled by an external script
 install: build $(DEVFILE) $(DEVDIR)
+	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=3
+	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=344 seek=96 skip=96
+	sync $(DEVFILE)
+
 # An existing media is needed to test stuff (duh)
 test: install
 clean:
