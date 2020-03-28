@@ -49,7 +49,7 @@ jobs:
     - name: make build, install and test (debug configuration)
       run: |
         export PATH="$PWD/i686-elf-tools/bin:$PATH"
-        export DEBUG=y
+        export DEBUG=Y
         make build
         make install
         make test
