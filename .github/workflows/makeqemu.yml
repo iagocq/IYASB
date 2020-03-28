@@ -37,7 +37,7 @@ jobs:
         dd if=/dev/zero of=dev.o bs=4096 count=131072
         mkfs.fat -F32 dev.o
         mkdir dev.d
-        mount -o uid=$(id -u),gid=$(id -g) dev.o dev.d
+        sudo mount -o uid=$(id -u),gid=$(id -g) dev.o dev.d
 
     - name: make build, install and test
       run: |
