@@ -41,6 +41,8 @@ jobs:
 
     - name: make build, install and test
       run: |
+        ls -la
+        pwd
         export PATH="$HOME/i686-elf-tools/bin:$PATH"
         make build
         make install
