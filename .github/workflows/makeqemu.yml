@@ -30,7 +30,7 @@ jobs:
     - name: install qemu
       run: |
         sudo apt update
-        sudo apt install -y qemu-system-x86
+        sudo apt install -y qemu-system-x86 nasm
 
     - name: create device
       run: |
