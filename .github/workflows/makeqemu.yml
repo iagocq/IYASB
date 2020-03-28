@@ -41,16 +41,14 @@ jobs:
 
     - name: make build, install and test
       run: |
-        ls -la
-        pwd
-        export PATH="$HOME/i686-elf-tools/bin:$PATH"
+        export PATH="$PWD/i686-elf-tools/bin:$PATH"
         make build
         make install
         make test
 
     - name: make build, install and test (debug configuration)
       run: |
-        export PATH="$HOME/i686-elf-tools/bin:$PATH"
+        export PATH="$PWD/i686-elf-tools/bin:$PATH"
         export DEBUG=y
         make build
         make install
