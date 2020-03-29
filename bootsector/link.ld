@@ -1,9 +1,9 @@
 BS_ENTRY = 0x7c00;
 BSS = 0xa000;
-STAGE_2_ENTRY = 0x500;
+STAGE2_ENTRY = 0x500;
 
 SECTIONS {
-    _stage_2_entry_ = STAGE_2_ENTRY;
+    _stage2_entry_ = STAGE2_ENTRY;
     . = BS_ENTRY;
 
     .text : {
