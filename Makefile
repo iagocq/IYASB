@@ -1,6 +1,6 @@
-CC	:= $(or $(CC),i686-elf-gcc)
+CC	= i686-elf-gcc
 AS	= nasm
-LD	:= i686-elf-ld
+LD	= i686-elf-ld
 
 OBJDIR	:= $(or $(OBJDIR),$(CURDIR)/obj)
 INCDIR	:= $(or $(INCDIR),$(CURDIR)/include)
@@ -16,8 +16,8 @@ DEBUG	=
 OBJDIR	:= $(OBJDIR)/default
 endif
 
-CFLAGS	:= -c -g -I$(INCDIR) -Wall -Wno-builtin-declaration-mismatch $(DEBUG)
-ASFLAGS	:= -f elf32 -g -Ox $(ASFLAGS) $(DEBUG)
+CFLAGS	:= -m32 -c -g -I$(INCDIR) -Wall -Wno-builtin-declaration-mismatch $(DEBUG)
+ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS	:= $(strip $(CFLAGS))
 LDFLAGS	:= $(strip $(LDFLAGS))
@@ -25,15 +25,15 @@ ASFLAGS	:= $(strip $(ASFLAGS))
 
 # Bootsector sources
 BSDIR	:= $(or $(BSDIR),bootsector)
-BSSRCS	= $(BSDIR)/bootsector.asm
+BSSRCS	= $(wildcard $(BSDIR)/*.asm)
 
 # Bootsector (for partitioned media) sources
 BS2XDIR	:= $(or $(BS2XDIR),bootsector2x)
-BSS2XSRCS	= $(BS2XDIR)/bootsector1.asm $(BS2XDIR)/bootsector2.asm
+BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
 
 # Stage2 sources
 S2DIR	:= $(or $(S2DIR),stage2)
-S2SRCS	= $(S2DIR)/entry.asm
+S2SRCS	= $(wildcard $(S2DIR)/*.asm) $(wildcard $(S2DIR)/*.c)
 
 BSOBJS	= $(BSSRCS:%=$(OBJDIR)/%.o)
 BSS2XOBJS	= $(BSS2XSRCS:%=$(OBJDIR)/%.o)
@@ -52,7 +52,9 @@ build: $(OBJDIR) $(OBJDIR)/bootsector.bin $(OBJDIR)/bootsector2x.bin $(OBJDIR)/s
 install: build $(DEVFILE) $(DEVDIR)
 	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=3
 	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=344 seek=96 skip=96
+	cp $(OBJDIR)/stage2.bin $(DEVDIR)/stage2
 	sync $(DEVFILE)
+	sync $(DEVDIR)/stage2
 
 # An existing media is needed to test stuff (duh)
 test: install

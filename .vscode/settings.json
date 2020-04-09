@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "stdarg.h": "c",
+        "atomic": "cpp",
+        "cstdint": "cpp"
+    }
+}
