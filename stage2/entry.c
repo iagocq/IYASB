@@ -1,12 +1,29 @@
-#include "types.h"
+#include <screen.h>
 
-NORETURN void centry();
+void centry() __attribute__((noreturn));
 
-NORETURN void centry() {
-    uint16_t *video = (uint16_t *) 0xb8000;
-    *video = 0x7041;
-
+/**
+ * @brief Entry point for the C code.
+ */
+void centry() {
     asm volatile ("cli");
+
+    init_screen();
+
+    for (int i = 0; i < 81; i++) {
+        putchar('a');
+    }
+
+    putchar('\n');
+
+    for (int i = 0; i < 20; i++) {
+        putchar('b');
+    }
+    putchar('\r');
+
+    for (int i = 0; i < 5; i++) {
+        putchar('c');
+    }
 
     while (1) {
         asm volatile ("hlt");

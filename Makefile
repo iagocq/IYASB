@@ -2,8 +2,12 @@ CC	= i686-elf-gcc
 AS	= nasm
 LD	= i686-elf-ld
 
+BSSRCS	= $(wildcard $(BSDIR)/*.asm)
+BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
+S2DIR	:= $(or $(S2DIR),stage2)
+
 OBJDIR	:= $(or $(OBJDIR),$(CURDIR)/obj)
-INCDIR	:= $(or $(INCDIR),$(CURDIR)/include)
+INCDIR	:= $(or $(INCDIR),$(CURDIR)/$(S2DIR)/include)
 
 DEVFILE	:= $(or $(DEVFILE),dev.o)
 DEVDIR	:= $(or $(DEVDIR),dev.d)
@@ -16,7 +20,7 @@ DEBUG	=
 OBJDIR	:= $(OBJDIR)/default
 endif
 
-CFLAGS	:= -m32 -c -g -I$(INCDIR) -Wall -Wno-builtin-declaration-mismatch $(DEBUG)
+CFLAGS	:= -O3 -m32 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -Wno-builtin-declaration-mismatch $(DEBUG)
 ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS	:= $(strip $(CFLAGS))
@@ -25,14 +29,11 @@ ASFLAGS	:= $(strip $(ASFLAGS))
 
 # Bootsector sources
 BSDIR	:= $(or $(BSDIR),bootsector)
-BSSRCS	= $(wildcard $(BSDIR)/*.asm)
 
 # Bootsector (for partitioned media) sources
 BS2XDIR	:= $(or $(BS2XDIR),bootsector2x)
-BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
 
 # Stage2 sources
-S2DIR	:= $(or $(S2DIR),stage2)
 S2SRCS	= $(wildcard $(S2DIR)/*.asm) $(wildcard $(S2DIR)/*.c)
 
 BSOBJS	= $(BSSRCS:%=$(OBJDIR)/%.o)
