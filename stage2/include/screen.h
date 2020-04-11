@@ -33,3 +33,4 @@ typedef struct screen {
 void init_screen();
 void clear_screen();
 void putchar(char chr);
+void puts(const char *str);

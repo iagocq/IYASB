@@ -10,20 +10,7 @@ void centry() {
 
     init_screen();
 
-    for (int i = 0; i < 81; i++) {
-        putchar('a');
-    }
-
-    putchar('\n');
-
-    for (int i = 0; i < 20; i++) {
-        putchar('b');
-    }
-    putchar('\r');
-
-    for (int i = 0; i < 5; i++) {
-        putchar('c');
-    }
+    puts("Hello, World!");
 
     while (1) {
         asm volatile ("hlt");

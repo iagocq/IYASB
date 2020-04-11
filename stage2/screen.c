@@ -84,14 +84,34 @@ void putchar(const char chr) {
 }
 
 /**
+ * @brief Print a string, followed by a new line.
+ */
+void puts(const char *str) {
+    while (*str != '\0') {
+        putchar(*str++);
+    }
+    putchar('\n');
+}
+
+/**
  * @brief Scroll the framebuffer n lines up.
  * 
  * @param n The number of lines to scroll up
  */
 void scroll_fb(const uint8_t n) {
-    memcpy(screen.video_mem,
-           screen.video_mem + n * screen.stride,
-           screen.stride * (screen.height - n));
+    /* It is UB to memcpy overlapping source and destination memory regions.
+       Even though this implementation does not cause UB in this case,
+       I chose to remain compliant to the standards by copying one row at
+       a time.
+    */
+
+    for (uint8_t row = n; row < screen.height; row++) {
+        memcpy(screen.video_mem + (row - n) * screen.stride,
+               screen.video_mem + row * screen.stride,
+               screen.width_bytes
+        );
+    }
+
     for (uint8_t row = screen.height - n; row < screen.height; row++) {
         clear_row(row);
     }
