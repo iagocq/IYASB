@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define VGA_CRTC_REG_ADDR 0x3D4
 #define VGA_CRTC_REG_DATA 0x3D5
@@ -24,7 +24,7 @@ typedef struct screen {
     ptrdiff_t width_bytes;
 
     /** Default character and attribute to use while cleaning the screen */
-    uint16_t default_char; 
+    uint16_t default_char;
 
     /** Pointer to the start of the video memory to use */
     void *video_mem;
