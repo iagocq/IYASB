@@ -1,6 +1,6 @@
-CC	= i686-elf-gcc
+CC	= clang -target i686-pc-none
 AS	= nasm
-LD	= i686-elf-ld
+LD	= ld -melf_i386
 
 BSSRCS	= $(wildcard $(BSDIR)/*.asm)
 BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
@@ -20,7 +20,7 @@ DEBUG	=
 OBJDIR	:= $(OBJDIR)/default
 endif
 
-CFLAGS	:= -O3 -m32 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -Wno-builtin-declaration-mismatch $(DEBUG)
+CFLAGS	:= -Os -c -g -I$(INCDIR) -ffreestanding -Wall -Werror $(DEBUG)
 ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS	:= $(strip $(CFLAGS))

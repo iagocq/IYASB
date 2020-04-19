@@ -204,7 +204,7 @@ void set_cursor_pos(uint8_t col, uint8_t row) {
  * @param row Row number
  * @return Cursor offset
  */
-inline uint16_t get_offset(uint8_t col, uint8_t row) {
+uint16_t get_offset(uint8_t col, uint8_t row) {
     return row * screen.width + col;
 }
 
@@ -214,7 +214,7 @@ inline uint16_t get_offset(uint8_t col, uint8_t row) {
  * @param offset Cursor offset
  * @return Row number
  */
-inline uint8_t get_row_offset(uint16_t offset) { return offset / screen.width; }
+uint8_t get_row_offset(uint16_t offset) { return offset / screen.width; }
 
 /**
  * @brief Extract the column number from an offset.
@@ -222,7 +222,7 @@ inline uint8_t get_row_offset(uint16_t offset) { return offset / screen.width; }
  * @param offset Cursor offset
  * @return Column number
  */
-inline uint8_t get_col_offset(uint16_t offset) { return offset % screen.width; }
+uint8_t get_col_offset(uint16_t offset) { return offset % screen.width; }
 
 // TODO move to a better place (like strings.{h,c} or something)
 void *memcpy(void *dst, const void *src, size_t n) {
