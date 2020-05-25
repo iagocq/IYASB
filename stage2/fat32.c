@@ -281,6 +281,16 @@ size_t fread(void *buffer, size_t size, size_t count, file_t *stream) {
 }
 
 /**
+ * @brief Get the number of bytes inside an open file.
+ *
+ * @param stream File descriptor of the file
+ * @return size_t Number of bytes
+ */
+size_t fsize(file_t *stream) {
+    return stream->entry->size;
+}
+
+/**
  * @brief Close an open file descriptor.
  *
  * @param stream The file descriptor to be closed

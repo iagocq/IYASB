@@ -19,6 +19,7 @@
         };                                        \
     }
 
+/** General purpose registers in memory as with using pushfd */
 typedef struct gp_registers {
     reg_def_32_16(di);
     reg_def_32_16(si);
@@ -32,8 +33,11 @@ typedef struct gp_registers {
     reg_def_32_16_8(a);
 } gp_registers_t;
 
+/** Values of registers after a real mode interrupt */
 typedef struct int_registers {
-    uint32_t       eflags;
+    /** EFLAGS register */
+    uint32_t eflags;
+    /** General purpose registers */
     gp_registers_t gp_registers;
 } int_registers_t;
 

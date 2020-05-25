@@ -55,10 +55,10 @@ size_t strlen(const char *str) {
 }
 
 /**
- * @brief Transforms a character into its lowercase form if it has one.
+ * @brief Transform a character into its lowercase form if it has one.
  *
  * @param c The character to be transformed
- * @return int The lowercase form of the character or the same character
+ * @return int The lowercase form of the character or the same character if it has none
  */
 int tolower(int c) {
     if (c >= 'A' && c <= 'Z')
@@ -67,7 +67,19 @@ int tolower(int c) {
 }
 
 /**
- * @brief Sets all bytes of a memory region to a single value.
+ * @brief Transform a character into its uppercase form if it has one.
+ *
+ * @param c The character to be transformed
+ * @return int The uppercase form of the character or the same character if it has none
+ */
+int toupper(int c) {
+    if (c >= 'a' && c <= 'z')
+        return c - 'a' + 'A';
+    return c;
+}
+
+/**
+ * @brief Set all bytes of a memory region to a single value.
  *
  * @param dest Destination memory address
  * @param ch Value to be written to destination bytes. Is cast to uint8_t
@@ -84,7 +96,7 @@ void *memset(void *dest, int ch, size_t count) {
 }
 
 /**
- * @brief Copies count bytes from src to dest.
+ * @brief Copy count bytes from src to dest.
  *
  * @param dest Destination memory address
  * @param src Source memory address
@@ -100,4 +112,49 @@ void *memcpy(void *dest, const void *src, size_t count) {
     }
 
     return dest;
+}
+
+/**
+ * @brief Create an ASCII representation of a number.
+ *
+ * @param num Number to be represented
+ * @param str String buffer to write the representation into
+ * @param base Base to write the number on
+ * @return char* Copy of str
+ */
+char *itoa(int num, char *str, int base) {
+    uint8_t neg   = 0;
+    char *  start = str;
+
+    if (num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return str;
+    }
+    str[0] = '\0';
+    str++;
+
+    if (num < 0 && base == 10) {
+        neg = 1;
+        num = -num;
+    }
+
+    while (num > 0) {
+        *str++ = "0123456789abcdef"[num % base];
+        num    = num / base;
+    }
+
+    if (neg) {
+        *str++ = '-';
+    }
+
+    char *orig = start;
+    char  s;
+    while (start < str) {
+        s        = *(--str);
+        *str     = *start;
+        *start++ = s;
+    }
+
+    return orig;
 }

@@ -1,5 +1,6 @@
 #include <disk.h>
 #include <fat32.h>
+#include <printf.h>
 #include <screen.h>
 
 /**
@@ -10,17 +11,12 @@ void centry(uint8_t drive_number) {
     init_disk(drive_number);
     init_fat();
 
-    if (fopen("/stage2", "rb") == NULL) {
-        puts("Failed to open file1");
+    char *filename = "/stage2";
+
+    file_t *file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Failed to open %s", filename);
     }
 
-    if (fopen("/hi.txt", "rb") == NULL) {
-        puts("Failed to open file2");
-    }
-
-    if (fopen("/folder1/file", "rb") == NULL) {
-        puts("Failed to open file3");
-    }
-
-    puts("Hello, World!");
+    printf("%s is %d bytes long\n", filename, fsize(file));
 }
