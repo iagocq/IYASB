@@ -81,3 +81,4 @@ void init_fat();
 file_t *fopen(const char *filename, const char *mode);
 size_t  fread(void *buffer, size_t size, size_t count, file_t *stream);
 size_t  fsize(file_t *stream);
+int     fclose(file_t *stream);

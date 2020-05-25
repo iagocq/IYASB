@@ -138,6 +138,10 @@ int printf(const char *format, ...) {
                     buf[1] = '\0';
                     str    = buf;
                     break;
+                case '%':
+                    buf[0] = '%';
+                    str    = buf;
+                    break;
                 default:
                     str = "?";
             }
