@@ -20,7 +20,7 @@ DEBUG	=
 OBJDIR	:= $(OBJDIR)/default
 endif
 
-CFLAGS	:= -Os -c -g -I$(INCDIR) -ffreestanding -Wall -Werror $(DEBUG)
+CFLAGS	:= -O0 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
 ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS	:= $(strip $(CFLAGS))

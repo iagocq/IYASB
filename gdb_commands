@@ -2,8 +2,10 @@ add-symbol-file obj/default/bootsector.elf
 add-symbol-file obj/default/stage2.elf
 target remote localhost:1234
 set disassembly-flavor intel
-break *0x7c00
-break *0x500
+#break *0x7c00
+#break *0x500
+break centry
 continue
-layout regs
+#layout regs
+layout src
 focus cmd

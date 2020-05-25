@@ -11,6 +11,9 @@ extern _bss_start_
 extern _bss_end_
 
 asm_entry:
+    cli
+    push    edx
+
     ; First enter protected mode, so code compiled by gcc can run
     call    enter_protected_mode
 
@@ -26,5 +29,13 @@ asm_entry:
     mov     edi, _bss_start_
     rep stosd
 
-    ; Just jmp to the entry
-    jmp     centry
+    pop     edx
+    mov     al, dl
+    push    eax
+
+    ; Just call the entry
+    call    centry
+
+halt_forever:
+    hlt
+    jmp     halt_forever

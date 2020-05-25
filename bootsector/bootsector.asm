@@ -45,8 +45,8 @@ start:
     mov     cx, bss_end-bss_start
     rep stosb
 
-    ; stack @ 0000:ffff
-    mov     sp, 0xffff
+    ; stack @ 0000:fff0
+    mov     sp, 0xfff0
 
     ; save drive number
     mov     [drive_number], dl
@@ -217,6 +217,7 @@ found_stage2:
 
         cmp     edi, 0x0FFFFFF8
         jl      .read_loop
+    mov     dl, [drive_number]
     jmp     0:_stage2_entry_
 
 no_stage2_die:
@@ -260,6 +261,7 @@ read_sectors:
 stage2_filename: db 'STAGE2     '
 ; never overrun the partition table
 times 440-($-$$) db 0
+db 0xff
 times 510-($-$$) db 0
 
 ; boot signature

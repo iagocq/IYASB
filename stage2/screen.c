@@ -5,16 +5,16 @@
 
 screen_t screen;
 
-void writechar(char chr, uint8_t col, uint8_t row);
-void clear_row(uint8_t row);
-void scroll_fb(uint8_t n);
-uint16_t get_cursor_offset();
-void set_cursor_offset(uint16_t offset);
-void set_cursor_pos(uint8_t col, uint8_t row);
+void            writechar(char chr, uint8_t col, uint8_t row);
+void            clear_row(uint8_t row);
+void            scroll_fb(uint8_t n);
+uint16_t        get_cursor_offset();
+void            set_cursor_offset(uint16_t offset);
+void            set_cursor_pos(uint8_t col, uint8_t row);
 inline uint16_t get_offset(uint8_t col, uint8_t row);
-inline uint8_t get_row_offset(uint16_t offset);
-inline uint8_t get_col_offset(uint16_t offset);
-void *memcpy(void *dst, const void *src, size_t n);
+inline uint8_t  get_row_offset(uint16_t offset);
+inline uint8_t  get_col_offset(uint16_t offset);
+void *          memcpy(void *dst, const void *src, size_t n);
 
 /**
  * @brief Initiates the screen to be usable later.
@@ -27,10 +27,10 @@ void init_screen() {
     screen.width = 80, screen.height = 25;
     screen.col = 0, screen.row = 24;
 
-    screen.stride = 2 * screen.width;
+    screen.stride      = 2 * screen.width;
     screen.width_bytes = 2 * screen.width;
 
-    screen.video_mem = (void *)0xb8000;
+    screen.video_mem = (void *) 0xb8000;
 
     screen.default_char = 0x0e20;
 
@@ -59,15 +59,15 @@ void clear_screen() {
  */
 void putchar(const char chr) {
     switch (chr) {
-    case '\n':
-        screen.row++;
-    case '\r':
-        screen.col = 0;
-        break;
-    default:
-        writechar(chr, screen.col, screen.row);
-        screen.col++;
-        break;
+        case '\n':
+            screen.row++;
+        case '\r':
+            screen.col = 0;
+            break;
+        default:
+            writechar(chr, screen.col, screen.row);
+            screen.col++;
+            break;
     }
 
     if (screen.col >= screen.width) {
@@ -107,7 +107,8 @@ void scroll_fb(const uint8_t n) {
 
     for (uint8_t row = n; row < screen.height; row++) {
         memcpy(screen.video_mem + (row - n) * screen.stride,
-               screen.video_mem + row * screen.stride, screen.width_bytes);
+               screen.video_mem + row * screen.stride,
+               screen.width_bytes);
     }
 
     for (uint8_t row = screen.height - n; row < screen.height; row++) {
@@ -128,8 +129,7 @@ void clear_row(const uint8_t row) {
     uint16_t *const last_c_mem = row_mem + screen.width_bytes;
 
     // Iterate through the row, setting each character to default_char
-    for (uint16_t *c_video_mem = row_mem; c_video_mem < last_c_mem;
-         c_video_mem++) {
+    for (uint16_t *c_video_mem = row_mem; c_video_mem < last_c_mem; c_video_mem++) {
         *c_video_mem = screen.default_char;
     }
 }
@@ -144,7 +144,7 @@ void clear_row(const uint8_t row) {
  */
 void writechar(const char chr, uint8_t col, uint8_t row) {
     uint16_t *video_mem = screen.video_mem + col * 2 + row * screen.stride;
-    *video_mem = (screen.default_char & 0xFF00) | ((uint8_t)chr);
+    *video_mem          = (screen.default_char & 0xFF00) | ((uint8_t) chr);
 }
 
 /**
@@ -214,7 +214,9 @@ uint16_t get_offset(uint8_t col, uint8_t row) {
  * @param offset Cursor offset
  * @return Row number
  */
-uint8_t get_row_offset(uint16_t offset) { return offset / screen.width; }
+uint8_t get_row_offset(uint16_t offset) {
+    return offset / screen.width;
+}
 
 /**
  * @brief Extract the column number from an offset.
@@ -222,16 +224,6 @@ uint8_t get_row_offset(uint16_t offset) { return offset / screen.width; }
  * @param offset Cursor offset
  * @return Column number
  */
-uint8_t get_col_offset(uint16_t offset) { return offset % screen.width; }
-
-// TODO move to a better place (like strings.{h,c} or something)
-void *memcpy(void *dst, const void *src, size_t n) {
-    const uint8_t *src_u8 = src;
-    uint8_t *dst_u8 = dst;
-
-    while (n--) {
-        *dst_u8++ = *src_u8++;
-    }
-
-    return dst;
+uint8_t get_col_offset(uint16_t offset) {
+    return offset % screen.width;
 }
