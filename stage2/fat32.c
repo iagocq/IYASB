@@ -228,8 +228,7 @@ file_t *fopen(const char *filename, const char *mode) {
 
         int found = 0;
 
-        for (current_entry = current_entry->first_child;
-             current_entry != NULL && current_entry->null != '\0';
+        for (current_entry = current_entry->first_child; current_entry != NULL;
              current_entry = current_entry->next_sibling) {
             if (strncmp(current_entry->name, filename, len) == 0) {
                 if (!current_entry->populated) {
