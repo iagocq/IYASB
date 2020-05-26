@@ -1,3 +1,4 @@
+#include <config.h>
 #include <disk.h>
 #include <fat32.h>
 #include <printf.h>
@@ -15,22 +16,27 @@ void centry(uint8_t drive_number) {
     init_disk(drive_number);
     init_fat();
 
-    char *filename = "/stage2";
+    char *filename = "/boot/iyasb.cfg";
 
     file_t *file = fopen(filename, "rb");
     if (file == NULL) {
-        printf("Failed to open %s\n", filename);
+        printf("Error: failed to open %s\n", filename);
+        return;
     }
 
     printf("%s is %d bytes long\n", filename, fsize(file));
 
-    char bpb[512];
-    fread(bpb, 1, 512, file);
+    config_t config;
 
-    memdump(bpb, 256, 20);
+    size_t read = fread(&config, sizeof(config_t), 1, file);
+    memdump(&config, sizeof(config_t), 20);
+    if (read != 1) {
+        printf("Error: failed to read config\n");
+        return;
+    }
 
     if (fclose(file) == EOF) {
-        printf("Failed to close the file\n");
+        printf("Error: failed to close the file\n");
     }
 
     extern entry_t root;
