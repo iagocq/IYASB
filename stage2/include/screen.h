@@ -34,3 +34,4 @@ void init_screen();
 void clear_screen();
 void putchar(char chr);
 void puts(const char *str);
+void memdump(void *mem, size_t len, size_t bytes_per_line);

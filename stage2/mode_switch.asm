@@ -5,7 +5,6 @@ section .text
 
 [bits 16]
 enter_protected_mode:
-    cli
     pop     cx
     push    eax
 
@@ -33,7 +32,6 @@ enter_protected_mode:
 
 [bits 32]
 enter_real_mode:
-    cli
     pop     ecx
     push    eax
 
@@ -61,8 +59,6 @@ enter_real_mode:
     mov     fs, ax
     mov     gs, ax
     mov     ss, ax
-
-    sti
 
     pop     eax
     push    cx

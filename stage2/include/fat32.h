@@ -7,9 +7,10 @@
 #define EOF ((int) -1)
 
 typedef struct data_buffer {
-    size_t size;
-    size_t current_pos;
-    void * data;
+    uint32_t info;
+    size_t   size;
+    size_t   current_pos;
+    void *   data;
 } data_buffer_t;
 
 /** Abstract entry over a real entry, with useful information cached for later physical access */
@@ -74,6 +75,12 @@ typedef struct file {
 
     /** Current read position */
     uint32_t pos;
+
+    /** Current cluster number */
+    uint32_t cluster;
+
+    /** Current sector in the current cluster */
+    uint32_t sector;
 } file_t;
 
 void init_fat();
@@ -82,3 +89,4 @@ file_t *fopen(const char *filename, const char *mode);
 size_t  fread(void *buffer, size_t size, size_t count, file_t *stream);
 size_t  fsize(file_t *stream);
 int     fclose(file_t *stream);
+int     feof(file_t *stream);

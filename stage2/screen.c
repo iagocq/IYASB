@@ -1,7 +1,9 @@
 #include <stdint.h>
 
 #include <ports.h>
+#include <printf.h>
 #include <screen.h>
+#include <string.h>
 
 screen_t screen;
 
@@ -226,4 +228,38 @@ uint8_t get_row_offset(uint16_t offset) {
  */
 uint8_t get_col_offset(uint16_t offset) {
     return offset % screen.width;
+}
+
+void memdump(void *mem, size_t len, size_t bytes_per_line) {
+    char     buf[11];
+    size_t   max_offset_len = strlen(itoa(((size_t) mem) + len, buf, 16));
+    uint8_t *umem           = (uint8_t *) mem;
+    for (size_t i = 0; i < len; i++) {
+        if ((i % bytes_per_line) == 0) {
+            if (i != 0) {
+                printf("  ");
+                for (size_t j = i - bytes_per_line; j < i; j++) {
+                    if (umem[j] >= 0x20 && umem[j] <= 0x7E)
+                        putchar(umem[j]);
+                    else
+                        putchar('.');
+                }
+                putchar('\n');
+            }
+            printf("%0*x:", max_offset_len, &umem[i]);
+        }
+        if ((i % 2) == 0) {
+            putchar(' ');
+        }
+        printf("%02x", umem[i]);
+    }
+    printf("  ");
+    int s = (int) len - (int) bytes_per_line;
+    for (size_t j = s < 0 ? 0 : s; j < len; j++) {
+        if (umem[j] >= 0x20 && umem[j] <= 0x7E)
+            putchar(umem[j]);
+        else
+            putchar('.');
+    }
+    putchar('\n');
 }

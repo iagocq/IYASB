@@ -22,10 +22,10 @@ call_interrupt:
     popad
     db      0xCD    ; int instruction
 int_number: db 0    ; int number
+    cli
 
     pushad  ; save gp registers + eflags for caller access
     pushfd  ;
-
     call    enter_protected_mode
 [bits 32]
 

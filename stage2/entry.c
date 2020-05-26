@@ -19,32 +19,20 @@ void centry(uint8_t drive_number) {
 
     file_t *file = fopen(filename, "rb");
     if (file == NULL) {
-        printf("Failed to open %s", filename);
+        printf("Failed to open %s\n", filename);
     }
 
     printf("%s is %d bytes long\n", filename, fsize(file));
 
+    char bpb[512];
+    fread(bpb, 1, 512, file);
+
+    memdump(bpb, 256, 20);
+
     if (fclose(file) == EOF) {
-        printf("Failed to close the file");
+        printf("Failed to close the file\n");
     }
 
-    int char_cols = 13;
-
-    for (int i = 0; i < 0xff; i++) {
-        int c = i;
-        switch (c) {
-            case '\r':
-            case '\n':
-                c = '!';
-                break;
-        }
-        printf("%02x: %c ", i, c);
-        if (i % char_cols == char_cols - 1) {
-            printf("\n");
-        }
-    }
-
-    printf("\n");
     extern entry_t root;
     file_tree(&root, 0);
 }

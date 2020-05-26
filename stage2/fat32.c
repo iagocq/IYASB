@@ -13,9 +13,9 @@ int      sectors_per_cluster;
 int      entries_per_sector;
 uint32_t fat_start;
 uint32_t data_start;
-uint8_t  fat_cache[4096];
 uint32_t current_sector;
 uint32_t root_dir_cluster;
+uint8_t *fat_cache = NULL;
 
 void populate_files(entry_t *dir);
 
@@ -24,8 +24,12 @@ void populate_files(entry_t *dir);
  *
  */
 void init_fat() {
+    if (fat_cache == NULL) {
+        fat_cache = alloc(bytes_per_sector);
+    }
+
     root_dir_cluster = 2;
-    read_sector(0, fat_cache);
+    read_sector(0, (void *) fat_cache);
     fat32_bootsector_t *bs  = (fat32_bootsector_t *) fat_cache;
     fat32_bpb_t *       bpb = &bs->fat32_bpb;
 
@@ -56,7 +60,7 @@ uint32_t next_cluster(uint32_t cluster) {
     uint32_t real_fat_sector = fat_start + sector_offset;
     if (real_fat_sector != current_sector) {
         current_sector = real_fat_sector;
-        read_sector(current_sector, fat_cache);
+        read_sector(current_sector, (void *) fat_cache);
     }
     uint32_t next_cluster_num = ((uint32_t *) fat_cache)[cluster % (bytes_per_sector / 4)];
     if (next_cluster_num >= 0x0FFFFFF8) {
@@ -146,14 +150,19 @@ entry_t *parse_entry(uint8_t **buffer) {
  * @param dir Directory to populate
  */
 void populate_files(entry_t *dir) {
+    static uint8_t *buffer = NULL;
+
     dir->populated = true;
     if (!dir->isdir) {
         return;
     }
 
+    if (buffer == NULL) {
+        buffer = alloc(bytes_per_sector);
+    }
+
     // Create buffer guaranteed to be located in the first segment
-    uint8_t  buffer[4096];
-    uint8_t *buf_ptr = buffer;
+    uint8_t *buf_ptr = (void *) buffer;
     entry_t *current_entry;
     uint32_t cluster = dir->cluster;
 
@@ -162,8 +171,8 @@ void populate_files(entry_t *dir) {
         uint32_t sector = sector_from_cluster(cluster);
 
         for (int i = 0; i < sectors_per_cluster; i++) {
-            buf_ptr = buffer;
-            read_sector(sector + i, buffer);
+            buf_ptr = (void *) buffer;
+            read_sector(sector + i, (void *) buffer);
 
             for (int j = 0; j < entries_per_sector; j++) {
                 entry_t *new_entry = parse_entry(&buf_ptr);
@@ -261,8 +270,11 @@ file_t *fopen(const char *filename, const char *mode) {
         return NULL;
     }
 
-    files[i].id    = i + 1;
-    files[i].entry = current_entry;
+    files[i].id      = i + 1;
+    files[i].entry   = current_entry;
+    files[i].cluster = current_entry->cluster;
+    files[i].sector  = 0;
+    files[i].pos     = 0;
 
     return &files[i];
 }
@@ -271,13 +283,61 @@ file_t *fopen(const char *filename, const char *mode) {
  * @brief Read content from a file descriptor.
  *
  * @param buffer Memory buffer to store the content
- * @param size Number of bytes for each element
+ * @param size Number of bytes of each element
  * @param count Number of elements to read
  * @param stream File descriptor to read from
- * @return size_t Number of bytes read
+ * @return size_t Number of elements read
  */
 size_t fread(void *buffer, size_t size, size_t count, file_t *stream) {
-    return 0;
+    static data_buffer_t data_buffer = {0};
+    if (data_buffer.data == NULL) {
+        data_buffer.data = alloc(bytes_per_sector);
+        data_buffer.size = bytes_per_sector;
+    }
+
+    if (feof(stream)) {
+        return EOF;
+    }
+
+    size_t bytes_read   = 0;
+    size_t read_maximum = stream->entry->size - stream->pos;
+    size_t total_bytes  = size * count;
+    total_bytes         = total_bytes > read_maximum ? read_maximum : total_bytes;
+
+    while (total_bytes > 0) {
+        if (stream->cluster == 0 || feof(stream)) {
+            break;
+        }
+
+        uint32_t psector = sector_from_cluster(stream->cluster) + stream->sector;
+        if (data_buffer.info != psector) {
+            read_sector(psector, (void *) data_buffer.data);
+            data_buffer.info        = psector;
+            data_buffer.current_pos = 0;
+        }
+
+        size_t readable_from_dbuffer = data_buffer.size - data_buffer.current_pos;
+
+        size_t to_copy = readable_from_dbuffer > total_bytes ? total_bytes : readable_from_dbuffer;
+
+        memcpy(buffer, data_buffer.data + data_buffer.current_pos, to_copy);
+
+        data_buffer.current_pos += to_copy;
+        buffer += to_copy;
+        total_bytes -= to_copy;
+        bytes_read += to_copy;
+        stream->pos += to_copy;
+
+        if (data_buffer.current_pos == data_buffer.size) {
+            stream->sector++;
+            if (stream->sector == sectors_per_cluster - 1) {
+                stream->sector  = 0;
+                stream->cluster = next_cluster(stream->cluster);
+            }
+        }
+    }
+
+    return bytes_read / size;
 }
 
 /**
@@ -304,4 +364,14 @@ int fclose(file_t *stream) {
 
     files[id].id = 0;
     return 0;
+}
+
+/**
+ * @brief Check if a stream reached its end.
+ *
+ * @param stream The file descriptor to be checked
+ * @return int 1 if the end was reached, 0 otherwise
+ */
+int feof(file_t *stream) {
+    return stream->pos >= stream->entry->size;
 }
