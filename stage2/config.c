@@ -36,7 +36,7 @@ config_result_t read_config(const char *path, config_t *config) {
 
     size_t n_entries = sizeof(entries) / sizeof(entries[0]);
 
-    while (1) {
+    while (true) {
         raw_config_entry_t cfg_entry = expect_entry(&buffer_ptr);
         if (buffer_ptr == NULL) {
             break;

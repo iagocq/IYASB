@@ -166,7 +166,7 @@ void populate_files(entry_t *dir) {
     entry_t *current_entry;
     uint32_t cluster = dir->cluster;
 
-    while (1) {
+    while (true) {
 
         uint32_t sector = sector_from_cluster(cluster);
 
@@ -208,7 +208,7 @@ void populate_files(entry_t *dir) {
 file_t *fopen(const char *filename, const char *mode) {
     entry_t *current_entry = &root;
 
-    while (1) {
+    while (true) {
         while (*filename == '/') {
             filename++;
         }

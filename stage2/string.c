@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -12,7 +13,7 @@
 char *strchr(const char *str, int chr) {
     const char *where = str;
 
-    while (1) {
+    while (true) {
         if (*where == (char) chr) {
             return (char *) where;
         } else if (*where == '\0') {
