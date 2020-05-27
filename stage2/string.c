@@ -78,6 +78,22 @@ int toupper(int c) {
     return c;
 }
 
+int isspace(int c) {
+    return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f' || c == '\v';
+}
+
+int isalpha(int c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+int isnum(int c) {
+    return c >= '0' && c <= '9';
+}
+
+int isalphanum(int c) {
+    return isalpha(c) || isnum(c);
+}
+
 /**
  * @brief Set all bytes of a memory region to a single value.
  *
