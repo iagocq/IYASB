@@ -1,7 +1,7 @@
+#include "string.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 /**
  * @brief Get the index of the first occurrence of a character.

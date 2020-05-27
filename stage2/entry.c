@@ -1,9 +1,9 @@
-#include <config.h>
-#include <disk.h>
-#include <fat32.h>
-#include <printf.h>
-#include <screen.h>
-#include <string.h>
+#include "config.h"
+#include "disk.h"
+#include "fat32.h"
+#include "printf.h"
+#include "screen.h"
+#include "string.h"
 
 void file_tree(entry_t *entry, int depth);
 void populate_files(entry_t *dir);
@@ -15,6 +15,9 @@ void centry(uint8_t drive_number) {
     init_screen();
     init_disk(drive_number);
     init_fat();
+
+    extern entry_t root;
+    file_tree(&root, 0);
 
     const char *config_name = "/boot/iyasb.cfg";
 
@@ -29,9 +32,6 @@ void centry(uint8_t drive_number) {
 
     printf("filename = %s\n", config.filename.value);
     printf("cmd-line = %s\n", config.cmd_line.value);
-
-    extern entry_t root;
-    file_tree(&root, 0);
 }
 
 void file_tree(entry_t *entry, int depth) {

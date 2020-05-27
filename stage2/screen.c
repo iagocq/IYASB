@@ -1,9 +1,8 @@
+#include "ports.h"
+#include "printf.h"
+#include "screen.h"
+#include "string.h"
 #include <stdint.h>
-
-#include <ports.h>
-#include <printf.h>
-#include <screen.h>
-#include <string.h>
 
 screen_t screen;
 

@@ -1,8 +1,8 @@
-#include <config.h>
+#include "config.h"
 
-#include <alloc.h>
-#include <fat32.h>
-#include <string.h>
+#include "alloc.h"
+#include "fat32.h"
+#include "string.h"
 
 raw_config_entry_t expect_entry(char **buffer);
 
