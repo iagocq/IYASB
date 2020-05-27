@@ -12,7 +12,7 @@ uint8_t  saved_disk_number;
  * @param buffer Memory location to write the data
  */
 void read_sector(uint32_t sector, void *buffer) {
-    struct {
+    static struct {
         uint8_t  size;
         uint8_t  zero;
         uint16_t readn;

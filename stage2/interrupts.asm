@@ -20,19 +20,34 @@ call_interrupt:
 
 .clear_pipeline:
     popad
+
     db      0xCD    ; int instruction
 int_number: db 0    ; int number
     cli
 
+    ; don't destroy the stack for the caller
+    sub     esp, 8*4+4
+
+    mov     [save_esp], esp
+    mov     esp, registers.end
     pushad  ; save gp registers + eflags for caller access
     pushfd  ;
+    mov     esp, [save_esp]
+
     call    enter_protected_mode
 [bits 32]
 
-    mov     eax, esp
+    mov     eax, registers
 
     mov     ebp, [save_ebp]
     jmp     [save_ret]
 
-save_ret:       dq 0
-save_ebp:       dq 0
+save_ret:       dd 0
+save_ebp:       dd 0
+
+save_esp:       dd 0xd1d2d3d4
+
+
+registers:      dd 0xe1e2e3e4   ; eflags
+                times 8 dd 0xf1f2f3f4 ; gp registers
+.end:

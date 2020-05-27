@@ -4,8 +4,7 @@ target remote localhost:1234
 set disassembly-flavor intel
 #break *0x7c00
 #break *0x500
+#break populate_files if $_streq(dir->name, "folder1")
+#break call_interrupt
 break centry
 continue
-#layout regs
-layout src
-focus cmd

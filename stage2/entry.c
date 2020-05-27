@@ -70,4 +70,8 @@ void file_tree(entry_t *entry, int depth) {
         printf("\n");
         file_tree(child, depth + 1);
     }
+
+    if (depth == 0) {
+        printf("\n");
+    }
 }

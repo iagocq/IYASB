@@ -1,9 +1,9 @@
-CC	= clang -target i686-pc-none
+CC	= clang -target i386-pc-none
 AS	= nasm
-LD	= ld -melf_i386
+LD	= ld.lld
 
-BSSRCS	= $(wildcard $(BSDIR)/*.asm)
-BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
+BSDIR	:= $(or $(BSDIR),bootsector)
+BS2XDIR	:= $(or $(BS2XDIR),bootsector2x)
 S2DIR	:= $(or $(S2DIR),stage2)
 
 OBJDIR	:= $(or $(OBJDIR),$(CURDIR)/obj)
@@ -20,7 +20,7 @@ DEBUG	=
 OBJDIR	:= $(OBJDIR)/default
 endif
 
-CFLAGS	:= -O2 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
+CFLAGS	:= -O3 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
 ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS	:= $(strip $(CFLAGS))
@@ -28,10 +28,10 @@ LDFLAGS	:= $(strip $(LDFLAGS))
 ASFLAGS	:= $(strip $(ASFLAGS))
 
 # Bootsector sources
-BSDIR	:= $(or $(BSDIR),bootsector)
+BSSRCS	= $(wildcard $(BSDIR)/*.asm)
 
 # Bootsector (for partitioned media) sources
-BS2XDIR	:= $(or $(BS2XDIR),bootsector2x)
+BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
 
 # Stage2 sources
 S2SRCS	= $(wildcard $(S2DIR)/*.asm) $(wildcard $(S2DIR)/*.c)

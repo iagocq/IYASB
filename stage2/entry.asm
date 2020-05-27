@@ -10,7 +10,9 @@ extern enter_protected_mode
 extern _bss_start_
 extern _bss_end_
 
-asm_entry:
+global _start
+
+_start:
     cli
     push    edx
 

@@ -6,20 +6,21 @@
 [bits 16]
 
 extern _stage2_entry_
+global _start
 
 %define NO_EXT_CODE             '1'
 %define STAGE2_NOT_FOUND_CODE   '2'
 
-%define O_BYTES_PER_LSECTOR     code_start+0x0b
-%define O_LSECTORS_PER_CLUSTER  code_start+0x0d
-%define O_RESERVED_LSECTORS     code_start+0x0e
-%define O_NFATS                 code_start+0x10
-%define O_LSECTORS_PER_FAT      code_start+0x24
-%define O_ROOT_CLUSTER          code_start+0x2c
+%define O_BYTES_PER_LSECTOR     _start+0x0b
+%define O_LSECTORS_PER_CLUSTER  _start+0x0d
+%define O_RESERVED_LSECTORS     _start+0x0e
+%define O_NFATS                 _start+0x10
+%define O_LSECTORS_PER_FAT      _start+0x24
+%define O_ROOT_CLUSTER          _start+0x2c
 
 section .text
 
-code_start:
+_start:
 
 jmp start
 nop
