@@ -3,7 +3,7 @@
 #include "fat32.h"
 #include "printf.h"
 #include "screen.h"
-#include "string.h"
+#include "sstring.h"
 
 void file_tree(entry_t *entry, int depth);
 void populate_files(entry_t *dir);

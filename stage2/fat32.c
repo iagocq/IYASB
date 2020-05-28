@@ -1,7 +1,7 @@
 #include "alloc.h"
 #include "disk.h"
 #include "fat32.h"
-#include "string.h"
+#include "sstring.h"
 
 #ifndef MAX_FILES
 #define MAX_FILES 16

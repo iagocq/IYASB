@@ -1,4 +1,4 @@
-#include "string.h"
+#include "sstring.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

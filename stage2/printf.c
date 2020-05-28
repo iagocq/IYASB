@@ -1,6 +1,6 @@
 #include "printf.h"
 #include "screen.h"
-#include "string.h"
+#include "sstring.h"
 #include <stdarg.h>
 #include <stdint.h>
 

@@ -2,7 +2,7 @@
 
 #include "alloc.h"
 #include "fat32.h"
-#include "string.h"
+#include "sstring.h"
 
 raw_config_entry_t expect_entry(char **buffer);
 
@@ -44,6 +44,10 @@ config_result_t read_config(const char *path, config_t *config) {
 
         size_t entry_len = cfg_entry.entry_name_len;
         size_t value_len = cfg_entry.value_len;
+
+        if (entry_len == 0 || value_len == 0) {
+            continue;
+        }
 
         for (size_t i = 0; i < n_entries; i++) {
             if (!entries[i].entry->filled) {
