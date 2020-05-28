@@ -1,6 +1,6 @@
-dev.o
-dev.d
-obj
-i686-elf-tools
-doc
-.vscode
+/dev.o
+/dev.d
+/obj
+/doc
+/.vscode
+/iyasb

@@ -1,76 +1,90 @@
-CC	= clang -target i386-pc-none
-AS	= nasm
-LD	= ld.lld
+S2_CC = clang -target i386-pc-none
+CC    = clang
+AS    = nasm
+LD    = ld.lld
 
-BSDIR	:= $(or $(BSDIR),bootsector)
-BS2XDIR	:= $(or $(BS2XDIR),bootsector2x)
-S2DIR	:= $(or $(S2DIR),stage2)
+BS_DIR   := $(or $(BS_DIR),bootsector)
+BS2X_DIR := $(or $(BS2X_DIR),bootsector2x)
+S2_DIR   := $(or $(S2_DIR),stage2)
+INS_DIR  := $(or $(INS_DIR),installer)
 
-OBJDIR	:= $(or $(OBJDIR),$(CURDIR)/obj)
-INCDIR	:= $(or $(INCDIR),$(CURDIR)/$(S2DIR)/include)
+OBJDIR    := $(or $(OBJDIR),obj)
+S2_INCDIR := $(or $(INCDIR),$(S2_DIR)/include)
 
-DEVFILE	:= $(or $(DEVFILE),dev.o)
-DEVDIR	:= $(or $(DEVDIR),dev.d)
+DEVFILE := $(or $(DEVFILE),dev.o)
+DEVDIR  := $(or $(DEVDIR),dev.d)
 
 ifeq ($(strip $(DEBUG)), Y)
-DEBUG	= -D _DEBUG
-OBJDIR	:= $(OBJDIR)/debug
+DEBUG   = -D _DEBUG
+OBJDIR := $(OBJDIR)/debug
 else
-DEBUG	=
-OBJDIR	:= $(OBJDIR)/default
+DEBUG   =
+OBJDIR := $(OBJDIR)/default
 endif
 
-CFLAGS	:= -O3 -c -g -I$(INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
-ASFLAGS	:= -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
+CFLAGS     := -O3 -c -g -I$(S2_INCDIR) -Wall -Werror
+S2_CFLAGS  := -O3 -c -g -I$(S2_INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
+ASFLAGS    := -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
-CFLAGS	:= $(strip $(CFLAGS))
-LDFLAGS	:= $(strip $(LDFLAGS))
-ASFLAGS	:= $(strip $(ASFLAGS))
+CFLAGS    := $(strip $(CFLAGS))
+S2_CFLAGS := $(strip $(S2_CFLAGS))
+ASFLAGS   := $(strip $(ASFLAGS))
 
 # Bootsector sources
-BSSRCS	= $(wildcard $(BSDIR)/*.asm)
+BS_SRCS = $(wildcard $(BS_DIR)/*.asm)
 
 # Bootsector (for partitioned media) sources
-BSS2XSRCS	= $(wildcard $(BS2XDIR)/*.asm)
+BSS2X_SRCS = $(wildcard $(BS2X_DIR)/*.asm)
 
 # Stage2 sources
-S2SRCS	= $(wildcard $(S2DIR)/*.asm) $(wildcard $(S2DIR)/*.c)
+S2_SRCS = $(wildcard $(S2_DIR)/*.asm) $(wildcard $(S2_DIR)/*.c)
 
-BSOBJS	= $(BSSRCS:%=$(OBJDIR)/%.o)
-BSS2XOBJS	= $(BSS2XSRCS:%=$(OBJDIR)/%.o)
-S2OBJS	= $(S2SRCS:%=$(OBJDIR)/%.o)
+# Installer sources
+INS_SRCS = $(wildcard $(INS_DIR)/*.c)
+
+BS_OBJS    = $(BS_SRCS:%=$(OBJDIR)/%.o)
+BSS2X_OBJS = $(BSS2X_SRCS:%=$(OBJDIR)/%.o)
+S2_OBJS    = $(S2_SRCS:%=$(OBJDIR)/%.o)
+INS_OBJS   = $(INS_SRCS:%=$(OBJDIR)/%.o) $(OBJDIR)/bootsector.bin.c.o $(OBJDIR)/stage2.bin.c.o $(OBJDIR)/bootsector2x.bin.c.o
+
+OBJGUARD = $(OBJDIR)/guard
+
+TARGET = iyasb
 
 all: build install test
 
-$(OBJDIR):
+$(OBJGUARD):
 	mkdir -p $(OBJDIR)
 	mkdir -p $(OBJDIR)/bootsector
 	mkdir -p $(OBJDIR)/bootsector2x
 	mkdir -p $(OBJDIR)/stage2
+	mkdir -p $(OBJDIR)/installer
+	touch $(OBJGUARD)
 
-build: $(OBJDIR) $(OBJDIR)/bootsector.bin $(OBJDIR)/bootsector2x.bin $(OBJDIR)/stage2.bin
+build: $(TARGET)
 
 install: build $(DEVFILE) $(DEVDIR)
-	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=3
-	dd if=$(OBJDIR)/bootsector.bin of=$(DEVFILE) bs=1 conv=notrunc count=344 seek=96 skip=96
-	cp $(OBJDIR)/stage2.bin $(DEVDIR)/stage2
+	./$(TARGET) $(DEVFILE) $(DEVDIR)
 	sync $(DEVFILE)
-	sync $(DEVDIR)/stage2
+	sync -f $(DEVDIR)/.
 
 # An existing media is needed to test stuff (duh)
 test: install
 clean:
 	rm -r $(OBJDIR)
 
+$(TARGET): $(INS_OBJS)
+	$(CC) -o $@ $^
+
 # This creates just the elfs, still with debugging symbols
-$(OBJDIR)/bootsector.elf: $(BSOBJS)
-	$(LD) -T $(BSDIR)/link.ld -o $@ $^
+$(OBJDIR)/bootsector.elf: $(BS_OBJS)
+	$(LD) -T $(BS_DIR)/link.ld -o $@ $^
 
-$(OBJDIR)/bootsector2x.elf: $(BSS2XOBJS)
-	$(LD) -T $(BS2XDIR)/link.ld -o $@ $^
+$(OBJDIR)/bootsector2x.elf: $(BSS2X_OBJS)
+	$(LD) -T $(BS2X_DIR)/link.ld -o $@ $^
 
-$(OBJDIR)/stage2.elf: $(S2OBJS)
-	$(LD) -T $(S2DIR)/link.ld -o $@ $^
+$(OBJDIR)/stage2.elf: $(S2_OBJS)
+	$(LD) -T $(S2_DIR)/link.ld -o $@ $^
 
 # Extract the actual binary from the elfs
 $(OBJDIR)/bootsector.bin: $(OBJDIR)/bootsector.elf
@@ -82,13 +96,24 @@ $(OBJDIR)/bootsector2x.bin: $(OBJDIR)/bootsector2x.elf
 $(OBJDIR)/stage2.bin: $(OBJDIR)/stage2.elf
 	objcopy -O binary $< $@
 
-# Compile every .asm and .c file
-$(OBJDIR)/%.asm.o: %.asm
+$(OBJDIR)/%.bin.c: $(OBJDIR)/%.bin
+	@echo "unsigned char `basename -s .bin $<`_data[] = {"  > $@
+	cat $< | xxd -i  >> $@
+	@echo "};"        >> $@
+	@echo "unsigned int `basename -s .bin $<`_len = `cat $< | wc -c`;" >> $@
+
+$(OBJDIR)/%.asm.o: %.asm $(OBJGUARD)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OBJDIR)/%.c.o: %.c
+$(OBJDIR)/%.c.o: %.c $(OBJGUARD)
+	$(CC) $(CFLAGS) -o $@ $<
+$(OBJDIR)/%.c.o: $(OBJDIR)/%.c $(OBJGUARD)
 	$(CC) $(CFLAGS) -o $@ $<
 
-# Some C files depend on headers, so any update on any of the headers should
+$(OBJDIR)/$(S2_DIR)/%.c.o: $(S2_DIR)/%.c $(OBJGUARD)
+	$(S2_CC) $(S2_CFLAGS) -o $@ $<
+
+# The C files depend on headers, so any update on any of the headers should
 # rebuild everything
-$(S2SRCS): $(wildcard $(INCDIR)/*)
+$(S2_SRCS): $(wildcard $(INCDIR)/*)
+$(INS_SRCS): $(wildcard $(INCDIR)/*)
