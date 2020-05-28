@@ -23,7 +23,7 @@ OBJDIR := $(OBJDIR)/default
 endif
 
 CFLAGS     := -O3 -c -g -I$(S2_INCDIR) -Wall -Werror
-S2_CFLAGS  := -O3 -c -g -I$(S2_INCDIR) -ffreestanding -Wall -Werror -mno-sse $(DEBUG)
+S2_CFLAGS  := -O3 -c -g -I$(S2_INCDIR) -ffreestanding -Wall -Werror -Wno-missing-braces -mno-sse $(DEBUG)
 ASFLAGS    := -f elf32 -F dwarf -g -Ox $(ASFLAGS) $(DEBUG)
 
 CFLAGS    := $(strip $(CFLAGS))
@@ -64,6 +64,7 @@ $(OBJGUARD):
 build: $(TARGET)
 
 install: build $(DEVFILE) $(DEVDIR)
+	mkdir -p $(DEVDIR)/boot
 	./$(TARGET) $(DEVFILE) $(DEVDIR)
 	sync $(DEVFILE)
 	sync -f $(DEVDIR)/.

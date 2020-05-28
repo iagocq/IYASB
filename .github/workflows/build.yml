@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: build project
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: create device
+      run: |
+        dd if=/dev/zero of=dev.o bs=4096 count=131072
+        mkfs.fat -F32 dev.o
+        mkdir -p dev.d
+        sudo mount -o uid=$(id -u),gid=$(id -g) dev.o dev.d
+
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y qemu-system-x86 nasm clang lld
+
+    - name: make build
+      run: |
+        make build
+
+    - name: make install
+      run: |
+        make install
