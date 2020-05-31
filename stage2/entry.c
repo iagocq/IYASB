@@ -32,6 +32,27 @@ void centry(uint8_t drive_number) {
 
     printf("filename = %s\n", config.filename.value);
     printf("cmd-line = %s\n", config.cmd_line.value);
+
+    // For now we just jmp to the kernel
+
+    file_t *kernel = fopen(config.filename.value, "rb");
+    if (kernel == NULL) {
+        printf("Error: failed to open the kernel file\n");
+        return;
+    }
+
+    void (*kernel_addr)() = (void *) 0x100000;
+    size_t kernel_size    = fsize(kernel);
+
+    size_t read = fread(kernel_addr, kernel_size, 1, kernel);
+    if (read != 1) {
+        printf("Error: failed to read the kernel image\n");
+        return;
+    }
+
+    fclose(kernel);
+
+    kernel_addr();
 }
 
 void file_tree(entry_t *entry, int depth) {

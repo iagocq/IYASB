@@ -1,3 +1,11 @@
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
+
 S2_CC = clang -target i386-pc-none
 CC    = clang
 AS    = nasm
@@ -40,26 +48,20 @@ BSS2X_SRCS = $(wildcard $(BS2X_DIR)/*.asm)
 S2_SRCS = $(wildcard $(S2_DIR)/*.asm) $(wildcard $(S2_DIR)/*.c)
 
 # Installer sources
-INS_SRCS = $(wildcard $(INS_DIR)/*.c)
+INS_SRCS = $(wildcard $(INS_DIR)/*.c) bootsector.bin stage2.bin bootsector2x.bin
+
+HEADERS := $(wildcard $(S2_INCDIR)/*.h)
 
 BS_OBJS    = $(BS_SRCS:%=$(OBJDIR)/%.o)
 BSS2X_OBJS = $(BSS2X_SRCS:%=$(OBJDIR)/%.o)
 S2_OBJS    = $(S2_SRCS:%=$(OBJDIR)/%.o)
-INS_OBJS   = $(INS_SRCS:%=$(OBJDIR)/%.o) $(OBJDIR)/bootsector.bin.c.o $(OBJDIR)/stage2.bin.c.o $(OBJDIR)/bootsector2x.bin.c.o
+INS_OBJS   = $(INS_SRCS:%=$(OBJDIR)/%.o)
 
 OBJGUARD = $(OBJDIR)/guard
 
 TARGET = iyasb
 
 all: build install test
-
-$(OBJGUARD):
-	mkdir -p $(OBJDIR)
-	mkdir -p $(OBJDIR)/bootsector
-	mkdir -p $(OBJDIR)/bootsector2x
-	mkdir -p $(OBJDIR)/stage2
-	mkdir -p $(OBJDIR)/installer
-	touch $(OBJGUARD)
 
 build: $(TARGET)
 
@@ -88,33 +90,34 @@ $(OBJDIR)/stage2.elf: $(S2_OBJS)
 	$(LD) -T $(S2_DIR)/link.ld -o $@ $^
 
 # Extract the actual binary from the elfs
-$(OBJDIR)/bootsector.bin: $(OBJDIR)/bootsector.elf
+$(OBJDIR)/%.bin: $(OBJDIR)/%.elf
 	objcopy -O binary $< $@
 
-$(OBJDIR)/bootsector2x.bin: $(OBJDIR)/bootsector2x.elf
-	objcopy -O binary $< $@
+# Transform the binaries into usable object files
+$(OBJDIR)/%.bin.o.tmp: $(OBJDIR)/%.bin
+	ld -r -b binary -o $@ $<
 
-$(OBJDIR)/stage2.bin: $(OBJDIR)/stage2.elf
-	objcopy -O binary $< $@
-
-$(OBJDIR)/%.bin.c: $(OBJDIR)/%.bin
-	@echo "unsigned char `basename -s .bin $<`_data[] = {"  > $@
-	cat $< | xxd -i  >> $@
-	@echo "};"        >> $@
-	@echo "unsigned int `basename -s .bin $<`_len = `cat $< | wc -c`;" >> $@
+$(OBJDIR)/%.bin.o: $(OBJDIR)/%.bin.o.tmp
+	TRANSFORMED_PREFIX="_binary_$$(echo -n "$(basename $(basename $<))" | tr -c '[A-Za-z0-9]' _)"
+	NEW_PREFIX="_resource_$$(echo -n "$(basename $(notdir $@))" | tr -c '[A-Za-z0-9]' _)"
+	objcopy --redefine-sym "$$TRANSFORMED_PREFIX"_start="$$NEW_PREFIX"_start \
+			--redefine-sym "$$TRANSFORMED_PREFIX"_end="$$NEW_PREFIX"_end \
+			--redefine-sym "$$TRANSFORMED_PREFIX"_size="$$NEW_PREFIX"_size \
+			$< $@
 
 $(OBJDIR)/%.asm.o: %.asm $(OBJGUARD)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OBJDIR)/%.c.o: %.c $(OBJGUARD)
-	$(CC) $(CFLAGS) -o $@ $<
-$(OBJDIR)/%.c.o: $(OBJDIR)/%.c $(OBJGUARD)
+$(OBJDIR)/%.c.o: %.c $(HEADERS) $(OBJGUARD)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/$(S2_DIR)/%.c.o: $(S2_DIR)/%.c $(OBJGUARD)
+$(OBJDIR)/$(S2_DIR)/%.c.o: $(S2_DIR)/%.c $(HEADERS) $(OBJGUARD)
 	$(S2_CC) $(S2_CFLAGS) -o $@ $<
 
-# The C files depend on headers, so any update on any of the headers should
-# rebuild everything
-$(S2_SRCS): $(wildcard $(INCDIR)/*)
-$(INS_SRCS): $(wildcard $(INCDIR)/*)
+$(OBJGUARD):
+	mkdir -p $(OBJDIR)
+	mkdir -p $(OBJDIR)/bootsector
+	mkdir -p $(OBJDIR)/bootsector2x
+	mkdir -p $(OBJDIR)/stage2
+	mkdir -p $(OBJDIR)/installer
+	touch $(OBJGUARD)

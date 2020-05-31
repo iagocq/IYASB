@@ -4,11 +4,11 @@
 
 #include "disk.h"
 
-extern unsigned char bootsector_data[];
-extern unsigned char stage2_data[];
+extern unsigned char _resource_bootsector_bin_start;
+extern unsigned char _resource_stage2_bin_start;
 
-extern unsigned int bootsector_len;
-extern unsigned int stage2_len;
+extern unsigned char _resource_bootsector_bin_end;
+extern unsigned char _resource_stage2_bin_end;
 
 void usage(char *argv[]);
 
@@ -22,8 +22,10 @@ char example_config[] = {"# This is an example configuration file\n"
                          "cmd-line =\n"};
 
 int main(int argc, char *argv[]) {
-    assert(bootsector_len == sizeof(fat32_bootsector_t));
-    assert(stage2_len > 0);
+    int bootsector_size = &_resource_bootsector_bin_end - &_resource_bootsector_bin_start;
+    int stage2_size     = &_resource_stage2_bin_end - &_resource_stage2_bin_start;
+    assert(bootsector_size == sizeof(fat32_bootsector_t));
+    assert(stage2_size > 0);
 
     if (argc < 3) {
         usage(argv);
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
     assert(bs_file != NULL);
 
     fat32_bootsector_t new_bootsector, bootsector_to_replace;
-    memcpy(&new_bootsector, bootsector_data, bootsector_len);
+    memcpy(&new_bootsector, &_resource_bootsector_bin_start, bootsector_size);
 
     size_t read = fread(&bootsector_to_replace, sizeof(fat32_bootsector_t), 1, bs_file);
     assert(read == 1);
@@ -63,7 +65,7 @@ int main(int argc, char *argv[]) {
     FILE *stage2_file = fopen(stage2_path, "wb");
     assert(stage2_file != NULL);
 
-    written = fwrite(stage2_data, stage2_len, 1, stage2_file);
+    written = fwrite(&_resource_stage2_bin_start, stage2_size, 1, stage2_file);
     assert(written == 1);
 
     fclose(stage2_file);

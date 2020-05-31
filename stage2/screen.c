@@ -1,6 +1,6 @@
+#include "screen.h"
 #include "ports.h"
 #include "printf.h"
-#include "screen.h"
 #include "sstring.h"
 #include <stdint.h>
 
