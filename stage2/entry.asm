@@ -11,6 +11,7 @@ extern _bss_start_
 extern _bss_end_
 
 global _start
+global kernel_addr
 
 _start:
     cli
@@ -34,10 +35,17 @@ _start:
     pop     edx
     mov     al, dl
     push    eax
+    mov     [saved_disk], eax
 
     ; Just call the entry
     call    centry
 
+    mov     edx, [saved_disk]
+    jmp     [kernel_addr]
+
 halt_forever:
     hlt
     jmp     halt_forever
+
+kernel_addr: dd 0
+saved_disk:  dd 0
