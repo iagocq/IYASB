@@ -1,6 +1,6 @@
-#include "fat32.h"
 #include "alloc.h"
 #include "disk.h"
+#include "fat32.h"
 #include "sstring.h"
 
 #ifndef MAX_FILES
@@ -329,7 +329,7 @@ size_t fread(void *buffer, size_t size, size_t count, file_t *stream) {
 
         if (data_buffer.current_pos == data_buffer.size) {
             stream->sector++;
-            if (stream->sector == sectors_per_cluster - 1) {
+            if (stream->sector == sectors_per_cluster) {
                 stream->sector  = 0;
                 stream->cluster = next_cluster(stream->cluster);
             }
