@@ -4,11 +4,18 @@
 
 #include "disk.h"
 
-extern unsigned char _resource_bootsector_bin_start;
-extern unsigned char _resource_stage2_bin_start;
+#define xcat(a, b) a##b
+#define cat(a, b)  xcat(a, b)
 
-extern unsigned char _resource_bootsector_bin_end;
-extern unsigned char _resource_stage2_bin_end;
+#define RESOURCE_FULL(res, suffix)   cat(cat(_resource_, res), cat(_, suffix))
+#define DEFINE_RESOURCE(res, suffix) extern char RESOURCE_FULL(res, suffix)
+#define RESOURCE(res, suffix)        (RESOURCE_FULL(res, suffix))
+
+DEFINE_RESOURCE(bootsector_bin, start);
+DEFINE_RESOURCE(bootsector_bin, end);
+
+DEFINE_RESOURCE(stage2_bin, start);
+DEFINE_RESOURCE(stage2_bin, end);
 
 void usage(char *argv[]);
 
@@ -22,8 +29,8 @@ char example_config[] = {"# This is an example configuration file\n"
                          "cmd-line =\n"};
 
 int main(int argc, char *argv[]) {
-    int bootsector_size = &_resource_bootsector_bin_end - &_resource_bootsector_bin_start;
-    int stage2_size     = &_resource_stage2_bin_end - &_resource_stage2_bin_start;
+    int bootsector_size = &RESOURCE(bootsector_bin, end) - &RESOURCE(bootsector_bin, start);
+    int stage2_size     = &RESOURCE(stage2_bin, end) - &RESOURCE(stage2_bin, start);
     assert(bootsector_size == sizeof(fat32_bootsector_t));
     assert(stage2_size > 0);
 
@@ -39,7 +46,7 @@ int main(int argc, char *argv[]) {
     assert(bs_file != NULL);
 
     fat32_bootsector_t new_bootsector, bootsector_to_replace;
-    memcpy(&new_bootsector, &_resource_bootsector_bin_start, bootsector_size);
+    memcpy(&new_bootsector, &RESOURCE(bootsector_bin, start), bootsector_size);
 
     size_t read = fread(&bootsector_to_replace, sizeof(fat32_bootsector_t), 1, bs_file);
     assert(read == 1);
@@ -65,7 +72,7 @@ int main(int argc, char *argv[]) {
     FILE *stage2_file = fopen(stage2_path, "wb");
     assert(stage2_file != NULL);
 
-    written = fwrite(&_resource_stage2_bin_start, stage2_size, 1, stage2_file);
+    written = fwrite(&RESOURCE(stage2_bin, start), stage2_size, 1, stage2_file);
     assert(written == 1);
 
     fclose(stage2_file);
