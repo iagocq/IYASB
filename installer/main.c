@@ -7,15 +7,44 @@
 #define xcat(a, b) a##b
 #define cat(a, b)  xcat(a, b)
 
-#define RESOURCE_FULL(res, suffix)   cat(cat(_resource_, res), cat(_, suffix))
-#define DEFINE_RESOURCE(res, suffix) extern char RESOURCE_FULL(res, suffix)
-#define RESOURCE(res, suffix)        (RESOURCE_FULL(res, suffix))
+#define RESOURCE_FULL(res, suffix) cat(cat(_resource_, res), cat(_, suffix))
 
-DEFINE_RESOURCE(bootsector_bin, start);
-DEFINE_RESOURCE(bootsector_bin, end);
+#define EXTERN_RESOURCE(res, suffix) extern char RESOURCE_FULL(res, suffix)
+#define DEFINE_RESOURCE(res)     \
+    EXTERN_RESOURCE(res, start); \
+    EXTERN_RESOURCE(res, end)
 
-DEFINE_RESOURCE(stage2_bin, start);
-DEFINE_RESOURCE(stage2_bin, end);
+#define GET_RESOURCE(res, suffix) (RESOURCE_FULL(res, suffix))
+#define RESOURCE_ENTRY(res)                                     \
+    extern_resources[cat(RESOURCE_, res)] = (resource_data_t) { \
+        &GET_RESOURCE(res, start), &GET_RESOURCE(res, end),     \
+            &GET_RESOURCE(res, end) - &GET_RESOURCE(res, start) \
+    }
+
+typedef struct resource_data {
+    void *start;
+    void *end;
+    int   size;
+} resource_data_t;
+
+DEFINE_RESOURCE(bootsector_bin);
+DEFINE_RESOURCE(stage2_bin);
+
+typedef enum resource { RESOURCE_bootsector_bin, RESOURCE_stage2_bin, RESOURCE_N } resource_t;
+resource_data_t extern_resources[RESOURCE_N];
+
+void initiate_resources() {
+    RESOURCE_ENTRY(bootsector_bin);
+    RESOURCE_ENTRY(stage2_bin);
+}
+
+resource_data_t get_resource(resource_t resource) {
+    if (resource >= RESOURCE_N) {
+        resource = RESOURCE_N;
+    }
+
+    return extern_resources[resource];
+}
 
 void usage(char *argv[]);
 
@@ -29,10 +58,13 @@ char example_config[] = {"# This is an example configuration file\n"
                          "cmd-line =\n"};
 
 int main(int argc, char *argv[]) {
-    int bootsector_size = &RESOURCE(bootsector_bin, end) - &RESOURCE(bootsector_bin, start);
-    int stage2_size     = &RESOURCE(stage2_bin, end) - &RESOURCE(stage2_bin, start);
-    assert(bootsector_size == sizeof(fat32_bootsector_t));
-    assert(stage2_size > 0);
+    initiate_resources();
+
+    resource_data_t bootsector = get_resource(RESOURCE_bootsector_bin);
+    resource_data_t stage2     = get_resource(RESOURCE_stage2_bin);
+
+    assert(bootsector.size == sizeof(fat32_bootsector_t));
+    assert(stage2.size > 0);
 
     if (argc < 3) {
         usage(argv);
@@ -46,7 +78,7 @@ int main(int argc, char *argv[]) {
     assert(bs_file != NULL);
 
     fat32_bootsector_t new_bootsector, bootsector_to_replace;
-    memcpy(&new_bootsector, &RESOURCE(bootsector_bin, start), bootsector_size);
+    memcpy(&new_bootsector, bootsector.start, bootsector.size);
 
     size_t read = fread(&bootsector_to_replace, sizeof(fat32_bootsector_t), 1, bs_file);
     assert(read == 1);
@@ -72,7 +104,7 @@ int main(int argc, char *argv[]) {
     FILE *stage2_file = fopen(stage2_path, "wb");
     assert(stage2_file != NULL);
 
-    written = fwrite(&RESOURCE(stage2_bin, start), stage2_size, 1, stage2_file);
+    written = fwrite(stage2.start, stage2.size, 1, stage2_file);
     assert(written == 1);
 
     fclose(stage2_file);
